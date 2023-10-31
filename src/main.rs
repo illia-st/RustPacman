@@ -36,7 +36,6 @@ fn main() -> AppResult<()> {
             Event::Resize(_, _) => {}
         }
     }
-
     // Exit the user interface.
     tui.exit()?;
     Ok(())

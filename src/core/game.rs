@@ -20,11 +20,11 @@ impl Game {
     }
     pub fn update_state(&mut self) -> GameStatus {
         // TODO: probably there is a sense to save who has won if we return GameStatus::Finished
-        if self.pacman.update_state() == GameStatus::Finished {
+        if self.pacman.update_state(&mut self.way) == GameStatus::Finished {
             return GameStatus::Finished;
         }
         for ghost in self.ghosts.iter_mut() {
-            if ghost.update_state() == GameStatus::Finished {
+            if ghost.update_state(&mut self.way) == GameStatus::Finished {
                 return GameStatus::Finished;
             }
         }
