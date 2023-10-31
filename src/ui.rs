@@ -8,6 +8,7 @@ use tui::{
 use crate::app::App;
 
 /// Renders the user interface widgets.
+#[allow(unused_variables)]
 pub fn render(app: &mut App, frame: &mut Frame) {
     // This is where you add new widgets.
     // See the following resources:
