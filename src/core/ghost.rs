@@ -1,5 +1,6 @@
 use crate::core::GameStatus;
 use super::cell::Cell;
+use std::collections::HashSet;
 
 #[derive(Default)]
 pub struct Ghost {
@@ -17,16 +18,33 @@ impl Ghost {
             computed_way: Vec::default(),
         }
     }
-    fn find_way_to_pacman(curr_way: Vec<usize>, way: &mut [Cell]) -> Vec<usize> {
-        todo!()
+    fn find_way_to_pacman(curr_way: Vec<usize>, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [Cell]) -> Vec<usize> {
+        let curr_pos = *curr_way.last().unwrap();
+        if curr_pos == pacman_pos {
+            return curr_way;
+        }
+        let next_cells = way.get(curr_pos).unwrap().next_cells.clone();
+        let mut ans: Vec<usize> = Vec::default();
+        for cell in next_cells.iter() {
+            if tracker.contains(cell) {
+                continue;
+            }
+            let mut new_way = curr_way.clone();
+            let mut new_tracker = tracker.clone();
+            new_way.push(*cell);
+            new_tracker.insert(*cell);
+
+            let res = Self::find_way_to_pacman(new_way, new_tracker, pacman_pos, way);
+            if ans.is_empty() || res.len() < ans.len() {
+                ans = res;
+            }
+        }
+        match ans.is_empty() {
+            true => curr_way,
+            false => ans
+        }
     }
     pub fn update_state(&mut self, way: &mut [Cell], current_pacman_pos: usize) -> GameStatus {
-        // so, need to define what is goind to happen here
-        // 1) we have a current pacman position
-        // 2) we have the way
-        // 3) need to compute the minimal distance to current pacman position
-        // and update position of the ghost
-        // we can do so by using dfs
         if self.pacman_pos == current_pacman_pos && !self.computed_way.is_empty() {
             way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
             let next_cell = *self.computed_way.last().unwrap();
@@ -41,11 +59,15 @@ impl Ghost {
         if self.pacman_pos != current_pacman_pos {
             let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
             for cell in next_cells {
-                let ans = Self::find_way_to_pacman(vec![cell], way);
+                let mut tracker = HashSet::new();
+                tracker.insert(cell);
+                let ans = Self::find_way_to_pacman(vec![cell], tracker, current_pacman_pos, way);
                 if self.computed_way.len() > ans.len() {
                     self.computed_way = ans;
                 }
             }
+            self.computed_way.reverse();
+            self.pacman_pos = current_pacman_pos;
         }
         match self.computed_way.is_empty() {
             true => {
