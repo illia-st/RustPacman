@@ -33,7 +33,8 @@ impl Game {
             return GameStatus::Finished;
         }
         for ghost in self.ghosts.iter_mut() {
-            if ghost.update_state(&mut self.way) == GameStatus::Finished {
+            ghost.pacman_pos = self.pacman.curr_cell;
+            if ghost.update_state(&mut self.way, self.pacman.curr_cell) == GameStatus::Finished {
                 return GameStatus::Finished;
             }
         }
