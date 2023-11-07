@@ -6,7 +6,6 @@ use super::ghost::Ghost;
 const FIELD_WIDTH: usize = 100;
 const FIELD_HEIGHT: usize = 100;
 
-#[derive(Default)]
 pub struct Game {
     pub pacman: Pacman,
     pub ghosts: Vec<Ghost>,

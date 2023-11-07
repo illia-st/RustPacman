@@ -1,21 +1,25 @@
 use crate::core::GameStatus;
 use super::cell::Cell;
 use std::collections::HashSet;
+use chrono::{DateTime, Duration, Utc};
 
-#[derive(Default)]
 pub struct Ghost {
     // TODO: change to usize
     pub curr_cell: usize,
     pub pacman_pos: usize,
     computed_way: Vec<usize>,
+    pub update_delta: Duration,
+    pub last_event_capture: DateTime<Utc>,
 }
 
 impl Ghost {
-    pub fn new(start_cell: usize, pacman_pos: usize) -> Self {
+    pub fn new(start_cell: usize, pacman_pos: usize, update_delta: Duration, last_event_capture: DateTime<Utc>) -> Self {
         Self {
             curr_cell: start_cell,
             pacman_pos,
             computed_way: Vec::default(),
+            update_delta,
+            last_event_capture,
         }
     }
     fn find_way_to_pacman(curr_way: Vec<usize>, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [Cell]) -> Vec<usize> {
@@ -45,6 +49,11 @@ impl Ghost {
         }
     }
     pub fn update_state(&mut self, way: &mut [Cell], current_pacman_pos: usize) -> GameStatus {
+        let event_capture = Utc::now();
+        if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
+            return GameStatus::Running;
+        }
+        self.last_event_capture = event_capture;
         if self.pacman_pos == current_pacman_pos && !self.computed_way.is_empty() {
             way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
             let next_cell = *self.computed_way.last().unwrap();

@@ -1,23 +1,32 @@
+use chrono::{DateTime, Duration, Utc};
 use crate::core::GameStatus;
 use super::cell::Cell;
 
-#[derive(Default)]
 pub struct Pacman {
     // TODO: remove steps to timestamps
     pub curr_cell: usize,
     pub points: u64,
+    pub update_delta: Duration,
+    pub last_event_capture: DateTime<Utc>,
 }
 
 
 impl Pacman {
-    pub fn new(start_cell: usize) -> Self {
+    pub fn new(start_cell: usize, update_delta: Duration, last_event_capture: DateTime<Utc>) -> Self {
         Self {
             curr_cell: start_cell,
             points: 0,
+            update_delta,
+            last_event_capture,
         }
     }
     pub fn update_state(&mut self, way: &mut [Cell]) -> GameStatus {
         // TODO: change speed by measuring timestamps
+        let event_capture = Utc::now();
+        if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
+            return GameStatus::Running;
+        }
+        self.last_event_capture = event_capture;
         if way.get(self.curr_cell).unwrap().next_cells.is_empty() {
             // means that pacman has nowhere to go
             return GameStatus::Finished;
