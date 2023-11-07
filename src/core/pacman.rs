@@ -4,29 +4,20 @@ use super::cell::Cell;
 #[derive(Default)]
 pub struct Pacman {
     // TODO: remove steps to timestamps
-    pub whole_step: u32,
-    pub actual_step: u32,
     pub curr_cell: usize,
     pub points: u64,
 }
 
 
 impl Pacman {
-    pub fn new(whole_step: u32, start_cell: usize) -> Self {
+    pub fn new(start_cell: usize) -> Self {
         Self {
-            whole_step,
-            actual_step: 0,
             curr_cell: start_cell,
             points: 0,
         }
     }
     pub fn update_state(&mut self, way: &mut [Cell]) -> GameStatus {
         // TODO: change speed by measuring timestamps
-        // self.actual_step += 1;
-        // if self.actual_step != self.whole_step {
-        //     return GameStatus::Running;
-        // }
-        // self.actual_step = 0;
         if way.get(self.curr_cell).unwrap().next_cells.is_empty() {
             // means that pacman has nowhere to go
             return GameStatus::Finished;
