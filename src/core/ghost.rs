@@ -1,5 +1,5 @@
 use crate::core::GameStatus;
-use super::cell::Cell;
+use super::map::graph::cell::GraphCell;
 use std::collections::HashSet;
 use chrono::{DateTime, Duration, Utc};
 
@@ -22,7 +22,7 @@ impl Ghost {
             last_event_capture,
         }
     }
-    fn find_way_to_pacman(curr_way: Vec<usize>, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [Cell]) -> Vec<usize> {
+    fn find_way_to_pacman(curr_way: Vec<usize>, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [GraphCell]) -> Vec<usize> {
         let curr_pos = *curr_way.last().unwrap();
         if curr_pos == pacman_pos {
             return curr_way;
@@ -48,7 +48,7 @@ impl Ghost {
             false => ans
         }
     }
-    pub fn update_state(&mut self, way: &mut [Cell], current_pacman_pos: usize) -> GameStatus {
+    pub fn update_state(&mut self, way: &mut [GraphCell], current_pacman_pos: usize) -> GameStatus {
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
             return GameStatus::Running;

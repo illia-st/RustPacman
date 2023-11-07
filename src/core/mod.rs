@@ -10,5 +10,5 @@ pub enum GameStatus {
 }
 pub mod pacman;
 pub mod ghost;
-pub mod cell;
+pub mod map;
 pub mod game;
