@@ -3,6 +3,7 @@ use super::map::graph::cell::GraphCell;
 use std::collections::HashSet;
 use chrono::{DateTime, Duration, Utc};
 
+#[derive(Debug)]
 pub struct Ghost {
     // TODO: change to usize
     pub curr_cell: usize,

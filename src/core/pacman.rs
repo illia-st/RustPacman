@@ -2,6 +2,7 @@ use chrono::{DateTime, Duration, Utc};
 use crate::core::GameStatus;
 use super::map::graph::cell::GraphCell;
 
+#[derive(Debug)]
 pub struct Pacman {
     // TODO: remove steps to timestamps
     pub curr_cell: usize,

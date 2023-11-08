@@ -3,6 +3,7 @@ use std::io;
 use pacman::app::App;
 use pacman::app::AppResult;
 
+use pacman::core::game::game::Game;
 use pacman::core::map::graph::graph::MapGraph;
 use pacman::core::map::matrix::matrix::MapMatrix;
 use pacman::event::Event;
@@ -19,11 +20,8 @@ fn main() -> AppResult<()> {
     // Create an application.
     let mut app = App::new();
 
-    let matrix = MapMatrix::load_matrix_from_file("/home/tr3tiakoff/University/RustPacman/res/default_map.txt");
-    println!("{:#?}", matrix);
-
-    let graph = MapGraph::loag_graph_from_matrix(&matrix);
-    println!("{:#?}", graph);
+    let game = Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/default_map.txt");
+    println!("{:#?}", game);
 
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(io::stderr());

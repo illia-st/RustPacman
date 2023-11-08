@@ -8,7 +8,9 @@ use super::cell::GraphCell;
 
 #[derive(Default, Debug)]
 pub struct MapGraph {
-    pub graph: Vec<GraphCell>
+    pub graph: Vec<GraphCell>,
+    pub pacman_pos: usize,
+    pub ghosts_pos: Vec<usize>,
 }
 
 impl MapGraph {
@@ -65,8 +67,25 @@ impl MapGraph {
             cell.next_cells = neighbors;
         }
 
+        let mut pacman_pos = positions[&(graph[0].x, graph[0].y)];
+        for cell in &graph {
+            if cell.pacman_presence {
+                pacman_pos = positions[&(cell.x, cell.y)];
+                break;
+            }
+        }
+
+        let mut ghosts_pos = Vec::new();
+        for cell in &graph {
+            if cell.ghost_presence {
+                ghosts_pos.push(positions[&(cell.x, cell.y)]);
+            }
+        }
+
         MapGraph {
-            graph
+            graph,
+            pacman_pos,
+            ghosts_pos
         }
     }
 }

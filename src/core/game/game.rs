@@ -1,12 +1,18 @@
+use std::ops::Deref;
+
+use chrono::Utc;
+use chrono::Duration;
+
 use crate::core::GameStatus;
 use crate::core::map::map::GameMap;
 use crate::core::pacman::Pacman;
 use crate::core::ghost::Ghost;
 
+#[derive(Debug)]
 pub struct Game {
+    pub map: GameMap,
     pub pacman: Pacman,
     pub ghosts: Vec<Ghost>,
-    pub map: GameMap,
 }
 
 impl Game {
@@ -32,10 +38,19 @@ impl Game {
     }
 
     pub fn load_from_file(path: &str) -> Self {
+        let game_map = GameMap::load_map_from_file(path);
+        
+        let pacman = Pacman::new(game_map.map_graph.pacman_pos, Duration::milliseconds(16), Utc::now());
+        
+        let mut ghosts = Vec::new();
+        for ghost_pos in &game_map.map_graph.ghosts_pos {
+            ghosts.push(Ghost::new(*ghost_pos, game_map.map_graph.pacman_pos, Duration::milliseconds(32), Utc::now()))
+        }
+
         Self {
-            pacman: todo!(),
-            ghosts: todo!(),
-            map: todo!(),
+            pacman,
+            ghosts,
+            map: game_map,
         }
     }
 }
