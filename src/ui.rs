@@ -92,77 +92,14 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 }
 
 fn render_game_field(app: &mut App, frame: &mut Frame, layout: Rect) {
-    let height = app.game.map.map_state_matrix.height;
-    let cell_height = (100. / height as f64) as usize;
-
-    let width = app.game.map.map_state_matrix.width;
-    let cell_width = (100. / width as f64) as usize;
-
-    let top_margin = ((100 - cell_height * height) / 2) as u16;
-    let bottom_margin = ((100 - cell_height * height) / 2) as u16;
-
-    let left_margin = ((100 - cell_width * width) / 2) as u16;
-    let right_margin = ((100 - cell_width * width) / 2) as u16;
-
-    let mut row_constraints = Vec::new();
-    row_constraints.append(&mut vec![Constraint::Percentage(top_margin)]);
-    row_constraints.append(
-            &mut std::iter::repeat(Constraint::Percentage(cell_height as u16))
-            .take(height)
-            .collect::<Vec<_>>()
-        );
-    row_constraints.append(&mut vec![Constraint::Percentage(bottom_margin)]);
-
-    let vertical_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(row_constraints)
-        .split(layout);
-
-    for i in 0..height {
-        let mut column_constraints = Vec::new();
-        column_constraints.append(&mut vec![Constraint::Percentage(right_margin)]);
-        column_constraints.append(
-                &mut std::iter::repeat(Constraint::Percentage(cell_width as u16))
-                .take(width)
-                .collect::<Vec<_>>()
-            );
-        column_constraints.append(&mut vec![Constraint::Percentage(left_margin)]);
-
-        let horizontal_layout = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(column_constraints)
-            .split(vertical_layout[i + 1]);
-
-        for j in 0..width {
-            frame.render_widget(
-                Paragraph::new("")
-                .block(
-                    Block::default()
-                        .title(format!("[{}, {}]", i, j))
-                        .title_alignment(Alignment::Center)
-                        .borders(Borders::ALL)
-                        .border_type(BorderType::Rounded),
-                    )
-                .style(Style::default().fg(
-                    match app.game.map.map_state_matrix.matrix[i][j].cell_type {
-                        crate::core::map::matrix::cell::CellType::Wall => Color::Blue,
-                        crate::core::map::matrix::cell::CellType::Pathway => 
-                            match app.game.map.map_state_matrix.matrix[i][j].cell_presence {
-                                crate::core::map::matrix::cell::CellPresence::Pacman => Color::Yellow,
-                                crate::core::map::matrix::cell::CellPresence::Ghost => Color::Magenta,
-                                crate::core::map::matrix::cell::CellPresence::None => 
-                                    match app.game.map.map_state_matrix.matrix[i][j].cell_modificator {
-                                        crate::core::map::matrix::cell::CellModificator::Point => Color::White,
-                                        crate::core::map::matrix::cell::CellModificator::Bonus => Color::Cyan,
-                                        crate::core::map::matrix::cell::CellModificator::Super => Color::Red,
-                                        crate::core::map::matrix::cell::CellModificator::None => Color::Gray,
-                                    },
-                            },
-                    }
-                ))
-                .alignment(Alignment::Center),
-                horizontal_layout[j + 1]
-            );
-        }
-    }
+    let canvas = Canvas::default()
+        .block(Block::default().borders(Borders::ALL).title("Pacman"))
+        .marker(tui::symbols::Marker::Block)
+        .x_bounds([0., app.game.map.map_state_matrix.height as f64])
+        .y_bounds([0., app.game.map.map_state_matrix.width as f64])
+        .paint(|ctx| {
+            ctx.draw(&app.game.map);
+        });
+    
+    frame.render_widget(canvas, layout);
 }

@@ -2,6 +2,8 @@ use std::ops::Deref;
 
 use chrono::Utc;
 use chrono::Duration;
+use tui::widgets::canvas::Map;
+use tui::widgets::canvas::Shape;
 
 use crate::core::GameStatus;
 use crate::core::map::map::GameMap;
@@ -54,4 +56,3 @@ impl Game {
         }
     }
 }
-
