@@ -3,6 +3,9 @@ use std::io;
 use pacman::app::App;
 use pacman::app::AppResult;
 
+use pacman::core::game::game::Game;
+use pacman::core::map::graph::graph::MapGraph;
+use pacman::core::map::matrix::matrix::MapMatrix;
 use pacman::event::Event;
 use pacman::event::EventHandler;
 
@@ -16,6 +19,9 @@ use tui::Terminal;
 fn main() -> AppResult<()> {
     // Create an application.
     let mut app = App::new();
+
+    let game = Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/default_map.txt");
+    println!("{:#?}", game);
 
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(io::stderr());
@@ -36,7 +42,6 @@ fn main() -> AppResult<()> {
             Event::Resize(_, _) => {}
         }
     }
-
     // Exit the user interface.
     tui.exit()?;
     Ok(())
