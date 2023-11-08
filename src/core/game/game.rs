@@ -30,5 +30,13 @@ impl Game {
         }
         GameStatus::Running
     }
+
+    pub fn load_from_file(path: &str) -> Self {
+        Self {
+            pacman: todo!(),
+            ghosts: todo!(),
+            map: todo!(),
+        }
+    }
 }
 

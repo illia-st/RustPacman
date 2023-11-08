@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct GraphCell {
     pub x: usize,
     pub y: usize,
