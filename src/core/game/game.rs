@@ -41,7 +41,7 @@ impl Game {
         
         let mut ghosts = Vec::new();
         for ghost_pos in &game_map.map_graph.ghosts_pos {
-            ghosts.push(Ghost::new(*ghost_pos, game_map.map_graph.pacman_pos, Duration::milliseconds(32), Utc::now()))
+            ghosts.push(Ghost::new(*ghost_pos, game_map.map_graph.pacman_pos, Duration::milliseconds(256), Utc::now()))
         }
 
         Self {
