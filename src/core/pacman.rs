@@ -94,14 +94,16 @@ impl Pacman {
     }
 
     pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>) -> GameStatus {
-        let mut x = way.get(self.curr_cell).unwrap().x;
-        let mut y = way.get(self.curr_cell).unwrap().y;
         // TODO: change speed by measuring timestamps
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
+
+        let mut x = way.get(self.curr_cell).unwrap().x;
+        let mut y = way.get(self.curr_cell).unwrap().y;
+
         if way.get(self.curr_cell).unwrap().next_cells.is_empty() {
             // means that pacman has nowhere to go
             return GameStatus::Finished;

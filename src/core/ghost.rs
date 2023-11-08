@@ -2,6 +2,7 @@ use crate::core::GameStatus;
 use super::map::graph::cell::GraphCell;
 use std::collections::HashSet;
 use chrono::{DateTime, Duration, Utc};
+use crate::core::map::matrix::cell::{CellPresence, MatrixCell};
 
 #[derive(Debug)]
 pub struct Ghost {
@@ -52,12 +53,16 @@ impl Ghost {
         }
         (ans, found_ans)
     }
-    pub fn update_state(&mut self, way: &mut [GraphCell], current_pacman_pos: usize) -> GameStatus {
+    pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) -> GameStatus {
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
+
+        let mut x = way.get(self.curr_cell).unwrap().x;
+        let mut y = way.get(self.curr_cell).unwrap().y;
+
         if self.pacman_pos != current_pacman_pos {
             let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
             self.computed_way.clear();
@@ -78,10 +83,17 @@ impl Ghost {
         match !self.computed_way.is_empty() {
             true => {
                 way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
+                matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::None;
+
                 let next_cell = *self.computed_way.last().unwrap();
                 self.computed_way.pop();
-                way.get_mut(next_cell).unwrap().ghost_presence = true;
                 self.curr_cell = next_cell;
+
+                way.get_mut(self.curr_cell).unwrap().ghost_presence = true;
+                x = way.get(self.curr_cell).unwrap().x;
+                y = way.get(self.curr_cell).unwrap().y;
+                matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::Ghost;
+
                 if way.get_mut(next_cell).unwrap().pacman_presence {
                     return GameStatus::Finished;
                 }

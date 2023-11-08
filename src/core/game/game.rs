@@ -27,7 +27,7 @@ impl Game {
             return GameStatus::Finished;
         }
         for ghost in self.ghosts.iter_mut() {
-            if ghost.update_state(&mut self.map.map_graph.graph, self.pacman.curr_cell) == GameStatus::Finished {
+            if ghost.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix, self.pacman.curr_cell) == GameStatus::Finished {
                 return GameStatus::Finished;
             }
         }
