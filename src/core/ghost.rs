@@ -79,7 +79,7 @@ impl Ghost {
             self.computed_way.reverse();
             self.pacman_pos = current_pacman_pos;
         }
-        match self.computed_way.is_empty() {
+        match !self.computed_way.is_empty() {
             true => {
                 way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
                 let next_cell = *self.computed_way.last().unwrap();
