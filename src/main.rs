@@ -3,6 +3,10 @@ use std::io;
 use pacman::app::App;
 use pacman::app::AppResult;
 
+use pacman::core::game;
+use pacman::core::game::game::Game;
+use pacman::core::map::graph::graph::MapGraph;
+use pacman::core::map::matrix::matrix::MapMatrix;
 use pacman::event::Event;
 use pacman::event::EventHandler;
 
@@ -26,6 +30,8 @@ fn main() -> AppResult<()> {
 
     // Start the main loop.
     while app.running {
+        // Update game state.
+        app.game.update_state();
         // Render the user interface.
         tui.draw(&mut app)?;
         // Handle events.
@@ -36,7 +42,6 @@ fn main() -> AppResult<()> {
             Event::Resize(_, _) => {}
         }
     }
-
     // Exit the user interface.
     tui.exit()?;
     Ok(())
