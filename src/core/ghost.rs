@@ -23,15 +23,19 @@ impl Ghost {
             last_event_capture,
         }
     }
-    fn find_way_to_pacman(curr_way: Vec<usize>, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [GraphCell]) -> Vec<usize> {
+    fn find_way_to_pacman(curr_way: Vec<usize>, mut min_len: usize, tracker: HashSet<usize>, pacman_pos: usize, way: &mut [GraphCell]) -> (Vec<usize>, bool) {
+        if curr_way.len() >= min_len {
+            return (curr_way, false);
+        }
         let curr_pos = *curr_way.last().unwrap();
         if curr_pos == pacman_pos {
-            return curr_way;
+            return (curr_way, true);
         }
         let next_cells = way.get(curr_pos).unwrap().next_cells.clone();
         let mut ans: Vec<usize> = Vec::default();
+        let mut found_ans = false;
         for cell in next_cells.iter() {
-            if tracker.contains(cell) {
+            if tracker.contains(cell) || way.get(*cell).unwrap().ghost_presence {
                 continue;
             }
             let mut new_way = curr_way.clone();
@@ -39,15 +43,14 @@ impl Ghost {
             new_way.push(*cell);
             new_tracker.insert(*cell);
 
-            let res = Self::find_way_to_pacman(new_way, new_tracker, pacman_pos, way);
-            if ans.is_empty() || res.len() < ans.len() {
-                ans = res;
+            let (res_way, found) = Self::find_way_to_pacman(new_way, min_len, new_tracker, pacman_pos, way);
+            if found && res_way.len() < min_len {
+                min_len = res_way.len();
+                ans = res_way;
+                found_ans = true;
             }
         }
-        match ans.is_empty() {
-            true => curr_way,
-            false => ans
-        }
+        (ans, found_ans)
     }
     pub fn update_state(&mut self, way: &mut [GraphCell], current_pacman_pos: usize) -> GameStatus {
         let event_capture = Utc::now();
@@ -55,25 +58,18 @@ impl Ghost {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
-        if self.pacman_pos == current_pacman_pos && !self.computed_way.is_empty() {
-            way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
-            let next_cell = *self.computed_way.last().unwrap();
-            self.computed_way.pop();
-            if way.get_mut(next_cell).unwrap().pacman_presence {
-                return GameStatus::Finished;
-            }
-            way.get_mut(next_cell).unwrap().ghost_presence = true;
-            self.curr_cell = next_cell;
-            return GameStatus::Running;
-        }
         if self.pacman_pos != current_pacman_pos {
             let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
+            self.computed_way.clear();
             for cell in next_cells {
+                if way.get(cell).unwrap().ghost_presence {
+                    continue;
+                }
                 let mut tracker = HashSet::new();
                 tracker.insert(cell);
-                let ans = Self::find_way_to_pacman(vec![cell], tracker, current_pacman_pos, way);
-                if self.computed_way.len() > ans.len() {
-                    self.computed_way = ans;
+                let (ans_way, found) = Self::find_way_to_pacman(vec![cell], usize::MAX, tracker, current_pacman_pos, way);
+                if found && (self.computed_way.is_empty() || self.computed_way.len() > ans_way.len()) {
+                    self.computed_way = ans_way;
                 }
             }
             self.computed_way.reverse();
@@ -84,14 +80,14 @@ impl Ghost {
                 way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
                 let next_cell = *self.computed_way.last().unwrap();
                 self.computed_way.pop();
+                way.get_mut(next_cell).unwrap().ghost_presence = true;
+                self.curr_cell = next_cell;
                 if way.get_mut(next_cell).unwrap().pacman_presence {
                     return GameStatus::Finished;
                 }
-                way.get_mut(next_cell).unwrap().ghost_presence = true;
-                self.curr_cell = next_cell;
                 GameStatus::Running
             }
-            false => GameStatus::Finished
+            false => GameStatus::Running
         }
     }
 }

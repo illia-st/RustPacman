@@ -3,10 +3,6 @@ use std::io;
 use pacman::app::App;
 use pacman::app::AppResult;
 
-use pacman::core::game;
-use pacman::core::game::game::Game;
-use pacman::core::map::graph::graph::MapGraph;
-use pacman::core::map::matrix::matrix::MapMatrix;
 use pacman::event::Event;
 use pacman::event::EventHandler;
 
