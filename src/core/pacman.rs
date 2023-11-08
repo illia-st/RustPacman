@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use chrono::{DateTime, Duration, Utc};
 use crate::core::GameStatus;
+use crate::core::map::matrix::cell::{CellModificator, CellPresence, MatrixCell};
 use super::map::graph::cell::GraphCell;
 
 #[derive(Debug)]
@@ -69,7 +70,7 @@ impl Pacman {
         self.computed_way.reverse();
     }
 
-    fn go_by_computed_way(&mut self, way: &mut [GraphCell]) -> bool {
+    fn go_by_computed_way(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, x: &mut usize, y: &mut usize) -> bool {
         let next_cell = *self.computed_way.last().unwrap();
         self.computed_way.pop();
         let ghost_presence = way.get(next_cell).unwrap().ghost_presence;
@@ -77,17 +78,24 @@ impl Pacman {
             return false;
         }
         way.get_mut(self.curr_cell).unwrap().pacman_presence = false;
+        matrix.get_mut(*x).unwrap().get_mut(*y).unwrap().cell_presence = CellPresence::None;
         self.curr_cell = next_cell;
+        *x = way.get(self.curr_cell).unwrap().x;
+        *y = way.get(self.curr_cell).unwrap().y;
         let new_cell = way.get_mut(self.curr_cell).unwrap();
+        matrix.get_mut(*x).unwrap().get_mut(*y).unwrap().cell_presence = CellPresence::Pacman;
         new_cell.pacman_presence = true;
         if new_cell.point_presence {
             new_cell.point_presence = false;
+            matrix.get_mut(*x).unwrap().get_mut(*y).unwrap().cell_modificator = CellModificator::None;
             self.points += 1;
         }
         true
     }
 
-    pub fn update_state(&mut self, way: &mut [GraphCell]) -> GameStatus {
+    pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>) -> GameStatus {
+        let mut x = way.get(self.curr_cell).unwrap().x;
+        let mut y = way.get(self.curr_cell).unwrap().y;
         // TODO: change speed by measuring timestamps
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
@@ -99,7 +107,7 @@ impl Pacman {
             return GameStatus::Finished;
         }
         let went_by_computed = if !self.computed_way.is_empty() {
-            self.go_by_computed_way(way)
+            self.go_by_computed_way(way, matrix, &mut x, &mut y)
         } else {
             false
         };
@@ -117,9 +125,14 @@ impl Pacman {
                 let new_cell = way.get_mut(*next_cell).unwrap();
                 new_cell.point_presence = false;
                 new_cell.pacman_presence = true;
+                matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::None;
+                matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_modificator = CellModificator::None;
 
                 way.get_mut(self.curr_cell).unwrap().pacman_presence = false;
                 self.curr_cell = *next_cell;
+                x = way.get(self.curr_cell).unwrap().x;
+                y = way.get(self.curr_cell).unwrap().y;
+                matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::Pacman;
                 self.points += 1;
                 return GameStatus::Running;
             }
@@ -129,7 +142,7 @@ impl Pacman {
             // look for a point
             self.start_finding_point(way, self.curr_cell);
             let went_by_computed = if !self.computed_way.is_empty() {
-                self.go_by_computed_way(way)
+                self.go_by_computed_way(way, matrix, &mut x, &mut y)
             } else {
                 false
             };
@@ -138,11 +151,16 @@ impl Pacman {
             }
             return GameStatus::Finished;
         }
-        // TODO: calculate the distance to the nearest point
         let new_cell = way.get_mut(*indexes_of_possible_cells.first().unwrap()).unwrap();
+
         new_cell.pacman_presence = true;
         way.get_mut(self.curr_cell).unwrap().pacman_presence = false;
+        matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::None;
+
         self.curr_cell = *indexes_of_possible_cells.first().unwrap();
+        x = way.get(self.curr_cell).unwrap().x;
+        y = way.get(self.curr_cell).unwrap().y;
+        matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::Pacman;
 
         GameStatus::Running
     }
