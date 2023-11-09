@@ -1,6 +1,7 @@
+use std::cmp::{max, min};
 use crate::core::GameStatus;
 use super::map::graph::cell::GraphCell;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use chrono::{DateTime, Duration, Utc};
 use crate::core::map::matrix::cell::{CellPresence, MatrixCell};
 
@@ -12,6 +13,18 @@ pub struct Ghost {
     computed_way: Vec<usize>,
     pub update_delta: Duration,
     pub last_event_capture: DateTime<Utc>,
+}
+
+pub struct AStarCell {
+    pub g_cost: usize,
+    pub h_cost: usize,
+    pub f_cost: usize,
+}
+
+impl AStarCell {
+    fn manhattan_distance(x_min: usize, y_min: usize, x_max: usize, y_max: usize) -> usize {
+        x_max - x_min + y_max - y_min
+    }
 }
 
 impl Ghost {
@@ -69,6 +82,70 @@ impl Ghost {
             }
         }
         self.pacman_pos = current_pacman_pos;
+    }
+    fn a_star_find_way_to_pacman(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) {
+        let mut open = HashMap::<usize, AStarCell>::default();
+        let mut closed = HashSet::<usize>::default();
+
+        let root_x = way.get(self.curr_cell).unwrap().x;
+        let root_y = way.get(self.curr_cell).unwrap().y;
+
+        let target_x = way.get(current_pacman_pos).unwrap().x;
+        let target_y = way.get(current_pacman_pos).unwrap().y;
+
+        let g_cost: usize = 0;
+
+        let h_cost = AStarCell::manhattan_distance(
+            min(root_x, target_x),
+            min(root_y, target_y),
+            max(root_x, target_x),
+            max(root_y, target_y),
+        );
+
+        let f_cost = g_cost + h_cost;
+
+        open.insert(self.curr_cell, AStarCell {
+            g_cost,
+            h_cost,
+            f_cost,
+        });
+
+        loop {
+            let cell= *open
+                .iter()
+                .min_by(|a, b| a.1.f_cost.cmp(&b.1.f_cost))
+                .map(|(k, _v)| k)
+                .unwrap();
+            let astar = open.remove(&cell).unwrap();
+            closed.insert(cell);
+
+
+
+            if cell == current_pacman_pos {
+                // means that we have found the way
+                return;
+            }
+            let neighbours = way.get(cell).unwrap().next_cells.clone();
+            for neighbour in neighbours {
+                if closed.contains(&neighbour) {
+                    continue;
+                }
+                let neighbour_x = way.get(neighbour).unwrap().x;
+                let neighbour_y = way.get(neighbour).unwrap().y;
+
+                if /* */ !open.contains_key(&neighbour) {
+
+                    // set f_cost to neighbor
+                    // set parent of neighbour to current
+                    if !open.contains_key(&neighbour) {
+                        let f_cost = 100;
+                        open.insert(neighbour, f_cost);
+                    }
+                }
+            }
+
+        }
+
     }
     pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) -> GameStatus {
         if self.pacman_pos != current_pacman_pos && self.computed_way.is_empty() {
