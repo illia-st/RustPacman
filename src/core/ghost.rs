@@ -36,7 +36,7 @@ impl Ghost {
         let mut ans: Vec<usize> = Vec::default();
         let mut found_ans = false;
         for cell in next_cells.iter() {
-            if tracker.contains(cell) || way.get(*cell).unwrap().ghost_presence {
+            if tracker.contains(cell) {
                 continue;
             }
             let mut new_way = curr_way.clone();
@@ -53,40 +53,66 @@ impl Ghost {
         }
         (ans, found_ans)
     }
+    fn start_finding_pacman(&mut self, way: &mut [GraphCell], current_pacman_pos: usize) {
+        let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
+        self.computed_way.clear();
+        for cell in next_cells {
+            if way.get(cell).unwrap().ghost_presence {
+                continue;
+            }
+            // TODO: think about changing hashset to vector of bool
+            let mut tracker = HashSet::new();
+            tracker.insert(cell);
+            let (ans_way, found) = Self::find_way_to_pacman(vec![cell], usize::MAX, tracker, current_pacman_pos, way);
+            if found && (self.computed_way.is_empty() || self.computed_way.len() > ans_way.len()) {
+                self.computed_way = ans_way;
+            }
+        }
+        self.pacman_pos = current_pacman_pos;
+    }
     pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) -> GameStatus {
+        // if self.pacman_pos != current_pacman_pos && self.computed_way.is_empty() {
+        //     self.start_finding_pacman(way, current_pacman_pos);
+        // } else if self.pacman_pos != current_pacman_pos {
+        //     // if we have found pacman in our way, it means that he is closer to us in one cell
+        //     // so we can delete the first one
+        //     // TODO: probably change Vec to Deque
+        //     let found = self.computed_way.iter().rfind(|cell| **cell == current_pacman_pos);
+        //     match found {
+        //         None => {
+        //             self.computed_way.push(current_pacman_pos);
+        //         },
+        //         Some(_) => {
+        //             self.computed_way.pop();
+        //         }
+        //     };
+        // }
+
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
 
+        if self.pacman_pos != current_pacman_pos {
+            self.start_finding_pacman(way, current_pacman_pos);
+        }
+
         let mut x = way.get(self.curr_cell).unwrap().x;
         let mut y = way.get(self.curr_cell).unwrap().y;
 
-        if self.pacman_pos != current_pacman_pos {
-            let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
-            self.computed_way.clear();
-            for cell in next_cells {
-                if way.get(cell).unwrap().ghost_presence {
-                    continue;
-                }
-                let mut tracker = HashSet::new();
-                tracker.insert(cell);
-                let (ans_way, found) = Self::find_way_to_pacman(vec![cell], usize::MAX, tracker, current_pacman_pos, way);
-                if found && (self.computed_way.is_empty() || self.computed_way.len() > ans_way.len()) {
-                    self.computed_way = ans_way;
-                }
-            }
-            self.computed_way.reverse();
-            self.pacman_pos = current_pacman_pos;
-        }
         match !self.computed_way.is_empty() {
             true => {
+                let next_cell = *self.computed_way.first().unwrap();
+                if way.get(next_cell).unwrap().ghost_presence {
+                    return GameStatus::Running;
+                }
+
+                // TODO: check ghost presence here, we can't go to the cell where ghost is present
                 way.get_mut(self.curr_cell).unwrap().ghost_presence = false;
                 matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::None;
 
-                let next_cell = *self.computed_way.last().unwrap();
-                self.computed_way.pop();
+                self.computed_way.remove(0);
                 self.curr_cell = next_cell;
 
                 way.get_mut(self.curr_cell).unwrap().ghost_presence = true;

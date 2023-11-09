@@ -108,14 +108,14 @@ impl Pacman {
             // means that pacman has nowhere to go
             return GameStatus::Finished;
         }
-        let went_by_computed = if !self.computed_way.is_empty() {
-            self.go_by_computed_way(way, matrix, &mut x, &mut y)
-        } else {
-            false
-        };
-        if went_by_computed {
-            return GameStatus::Running;
-        }
+        // let went_by_computed = if !self.computed_way.is_empty() {
+        //     self.go_by_computed_way(way, matrix, &mut x, &mut y)
+        // } else {
+        //     false
+        // };
+        // if went_by_computed {
+        //     return GameStatus::Running;
+        // }
         let mut indexes_of_possible_cells = Vec::<usize>::default();
         let next_cells = way.get(self.curr_cell).unwrap().next_cells.clone();
         for next_cell in next_cells.iter() {
@@ -123,9 +123,13 @@ impl Pacman {
                 // means that there is a ghost
                 continue;
             }
-            if way.get(*next_cell).unwrap().point_presence {
+            if way.get(*next_cell).unwrap().point_presence || way.get(*next_cell).unwrap().bonus_presence {
                 let new_cell = way.get_mut(*next_cell).unwrap();
-                new_cell.point_presence = false;
+                if new_cell.point_presence {
+                    self.points += 1;
+                    new_cell.point_presence = false;
+                }
+                new_cell.bonus_presence = false;
                 new_cell.pacman_presence = true;
                 matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::None;
                 matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_modificator = CellModificator::None;
@@ -135,23 +139,22 @@ impl Pacman {
                 x = way.get(self.curr_cell).unwrap().x;
                 y = way.get(self.curr_cell).unwrap().y;
                 matrix.get_mut(x).unwrap().get_mut(y).unwrap().cell_presence = CellPresence::Pacman;
-                self.points += 1;
                 return GameStatus::Running;
             }
             indexes_of_possible_cells.push(*next_cell);
         }
         if indexes_of_possible_cells.is_empty() {
             // look for a point
-            self.start_finding_point(way, self.curr_cell);
-            let went_by_computed = if !self.computed_way.is_empty() {
-                self.go_by_computed_way(way, matrix, &mut x, &mut y)
-            } else {
-                false
-            };
-            if went_by_computed {
-                return GameStatus::Running;
-            }
-            return GameStatus::Finished;
+            // self.start_finding_point(way, self.curr_cell);
+            // let went_by_computed = if !self.computed_way.is_empty() {
+            //     self.go_by_computed_way(way, matrix, &mut x, &mut y)
+            // } else {
+            //     false
+            // };
+            // if went_by_computed {
+            //     return GameStatus::Running;
+            // }
+            return GameStatus::Running;
         }
         let new_cell = way.get_mut(*indexes_of_possible_cells.first().unwrap()).unwrap();
 
