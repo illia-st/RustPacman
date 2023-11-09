@@ -11,3 +11,4 @@ crossterm = "0.27"
 log = "0.4.20"
 log4rs = "1.2.0"
 tui = { package = "ratatui", version = "0.24" }
+rand = "0.8.5"

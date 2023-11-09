@@ -71,22 +71,22 @@ impl Ghost {
         self.pacman_pos = current_pacman_pos;
     }
     pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) -> GameStatus {
-        // if self.pacman_pos != current_pacman_pos && self.computed_way.is_empty() {
-        //     self.start_finding_pacman(way, current_pacman_pos);
-        // } else if self.pacman_pos != current_pacman_pos {
-        //     // if we have found pacman in our way, it means that he is closer to us in one cell
-        //     // so we can delete the first one
-        //     // TODO: probably change Vec to Deque
-        //     let found = self.computed_way.iter().rfind(|cell| **cell == current_pacman_pos);
-        //     match found {
-        //         None => {
-        //             self.computed_way.push(current_pacman_pos);
-        //         },
-        //         Some(_) => {
-        //             self.computed_way.pop();
-        //         }
-        //     };
-        // }
+        if self.pacman_pos != current_pacman_pos && self.computed_way.is_empty() {
+            self.start_finding_pacman(way, current_pacman_pos);
+        } else if self.pacman_pos != current_pacman_pos {
+            // if we have found pacman in our way, it means that he is closer to us in one cell
+            // so we can delete the first one
+            // TODO: probably change Vec to Deque
+            let found = self.computed_way.iter().rfind(|cell| **cell == current_pacman_pos);
+            match found {
+                None => {
+                    self.computed_way.push(current_pacman_pos);
+                },
+                Some(_) => {
+                    self.computed_way.pop();
+                }
+            };
+        }
 
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
@@ -94,9 +94,9 @@ impl Ghost {
         }
         self.last_event_capture = event_capture;
 
-        if self.pacman_pos != current_pacman_pos {
-            self.start_finding_pacman(way, current_pacman_pos);
-        }
+        // if self.pacman_pos != current_pacman_pos {
+        //     self.start_finding_pacman(way, current_pacman_pos);
+        // }
 
         let mut x = way.get(self.curr_cell).unwrap().x;
         let mut y = way.get(self.curr_cell).unwrap().y;
