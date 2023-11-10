@@ -17,7 +17,7 @@ impl Default for App {
     fn default() -> Self {
         Self {
             running: true,
-            game: Game::load_from_file("res/default_map.txt"),
+            game: Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/default_map.txt"),
         }
     }
 }

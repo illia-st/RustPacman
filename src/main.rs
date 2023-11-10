@@ -12,7 +12,6 @@ use pacman::tui::Tui;
 
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
-use pacman::core::GameStatus;
 
 fn main() -> AppResult<()> {
     // Create an application.
@@ -28,13 +27,9 @@ fn main() -> AppResult<()> {
     // Start the main loop.
     while app.running {
         // Update game state.
-
-        let res = app.game.update_state();
+        app.game.update_state();
         // Render the user interface.
         tui.draw(&mut app)?;
-        if res == GameStatus::Finished {
-            app = App::new();
-        }
         // Handle events.
         match tui.events.next()? {
             Event::Tick => app.tick(),

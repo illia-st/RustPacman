@@ -7,5 +7,4 @@ pub struct GraphCell {
     pub ghost_presence: bool,
     pub point_presence: bool,
     pub pacman_presence: bool,
-    pub bonus_presence: bool,
 }
