@@ -94,12 +94,14 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 fn render_game_field(app: &mut App, frame: &mut Frame, layout: Rect) {
     let canvas = Canvas::default()
         .block(Block::default().borders(Borders::ALL).title("Pacman"))
-        .marker(tui::symbols::Marker::Block)
-        .x_bounds([0., app.game.map.map_state_matrix.height as f64])
-        .y_bounds([0., app.game.map.map_state_matrix.width as f64])
+        .marker(tui::symbols::Marker::Braille)
+        .x_bounds([0., (app.game.map.screen_width * app.game.map.tile_width) as f64 + 1.])
+        .y_bounds([0., (app.game.map.screen_height * app.game.map.tile_height) as f64 + 1.])
         .paint(|ctx| {
             ctx.draw(&app.game.map);
         });
     
     frame.render_widget(canvas, layout);
+
+    // println!("H:[{}], W:[{}]", layout.height, layout.width)
 }
