@@ -1,7 +1,7 @@
-use std::ops::Deref;
-
 use chrono::Utc;
 use chrono::Duration;
+use tui::widgets::canvas::Map;
+use tui::widgets::canvas::Shape;
 
 use crate::core::GameStatus;
 use crate::core::map::map::GameMap;
@@ -25,12 +25,11 @@ impl Game {
     }
     pub fn update_state(&mut self) -> GameStatus {
         // TODO: probably there is a sense to save who has won if we return GameStatus::Finished
-        if self.pacman.update_state(&mut self.map.map_graph.graph) == GameStatus::Finished {
+        if self.pacman.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix) == GameStatus::Finished {
             return GameStatus::Finished;
         }
         for ghost in self.ghosts.iter_mut() {
-            ghost.pacman_pos = self.pacman.curr_cell;
-            if ghost.update_state(&mut self.map.map_graph.graph, self.pacman.curr_cell) == GameStatus::Finished {
+            if ghost.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix, self.pacman.curr_cell) == GameStatus::Finished {
                 return GameStatus::Finished;
             }
         }
@@ -44,7 +43,7 @@ impl Game {
         
         let mut ghosts = Vec::new();
         for ghost_pos in &game_map.map_graph.ghosts_pos {
-            ghosts.push(Ghost::new(*ghost_pos, game_map.map_graph.pacman_pos, Duration::milliseconds(32), Utc::now()))
+            ghosts.push(Ghost::new(*ghost_pos, game_map.map_graph.pacman_pos, Duration::milliseconds(256), Utc::now()))
         }
 
         Self {
@@ -54,4 +53,3 @@ impl Game {
         }
     }
 }
-
