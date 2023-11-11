@@ -38,8 +38,8 @@ impl DefaultMapGenerator {
 
 impl MapGenerator for DefaultMapGenerator {
     fn generate_map() -> GameMap {
-        const SCREEN_HEIGHT: usize = 42;
-        const SCREEN_WIDTH: usize = 60;
+        const SCREEN_HEIGHT: usize = 35;
+        const SCREEN_WIDTH: usize = 80;
 
         const MAP_HEIGHT: usize = 33;
         const MAP_WIDTH: usize = 30;
