@@ -10,6 +10,14 @@ pub struct MapMatrix {
 }
 
 impl MapMatrix {
+    pub fn new(height: usize, width: usize, matrix: Vec<Vec<MatrixCell>>) -> Self {
+        MapMatrix {
+            height,
+            width,
+            matrix,
+        }
+    }
+
     pub fn load_matrix_from_file(path: &str) -> MapMatrix {
 
         let mut matrix: Vec<Vec<MatrixCell>> = Vec::new();

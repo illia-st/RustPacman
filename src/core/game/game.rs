@@ -23,6 +23,7 @@ impl Game {
             map,
         }
     }
+    
     pub fn update_state(&mut self) -> GameStatus {
         // TODO: probably there is a sense to save who has won if we return GameStatus::Finished
         if self.pacman.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix) == GameStatus::Finished {

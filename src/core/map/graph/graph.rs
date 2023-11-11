@@ -14,7 +14,7 @@ pub struct MapGraph {
 }
 
 impl MapGraph {
-    pub fn loag_graph_from_matrix(matrix: &MapMatrix) -> MapGraph {
+    pub fn load_graph_from_matrix(matrix: &MapMatrix) -> MapGraph {
         let mut graph: Vec<GraphCell> = Vec::new();
 
         let mut positions: HashMap<(usize, usize), usize> = HashMap::new();
