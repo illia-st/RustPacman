@@ -4,6 +4,7 @@ use super::map::graph::cell::GraphCell;
 use std::collections::HashMap;
 use chrono::{DateTime, Duration, Utc};
 use crate::core::map::matrix::cell::{CellPresence, MatrixCell};
+use crate::core::pacman::Pacman;
 
 #[derive(Debug)]
 pub struct Ghost {
@@ -40,7 +41,7 @@ impl Ghost {
         }
     }
 
-    fn find_way_to_pacman(&mut self, way: &mut [GraphCell], current_pacman_pos: usize) -> Vec<usize>{
+    fn find_target_pos(&mut self, way: &mut [GraphCell], target_pos: usize) -> Vec<usize>{
         const G_COST_STEP: usize = 10;
         // I have decided to use hashmap here because I need to store astar distances by usize of the cell
         let mut opened = HashMap::<usize, AStarCell>::default();
@@ -51,8 +52,8 @@ impl Ghost {
         let root_x = way.get(self.curr_cell).unwrap().x;
         let root_y = way.get(self.curr_cell).unwrap().y;
 
-        let target_x = way.get(current_pacman_pos).unwrap().x;
-        let target_y = way.get(current_pacman_pos).unwrap().y;
+        let target_x = way.get(target_pos).unwrap().x;
+        let target_y = way.get(target_pos).unwrap().y;
 
         // g_cost fot the root is 0 because it's a starting point
         let g_cost: usize = 0;
@@ -89,7 +90,7 @@ impl Ghost {
             closed.insert(cell, astar.clone());
 
             // check if the current cell is the target cell (the position of pacman)
-            if cell == current_pacman_pos {
+            if cell == target_pos {
                 // means that we have found the way
                 break;
             }
@@ -138,7 +139,7 @@ impl Ghost {
                 }
             }
         }
-        let mut curr_cell = current_pacman_pos;
+        let mut curr_cell = target_pos;
         let mut route = vec![curr_cell];
         while closed.get(&curr_cell).unwrap().parent.is_some() {
             let curr_astar = closed.get(&curr_cell).unwrap();
@@ -149,16 +150,20 @@ impl Ghost {
         }
         route
     }
-    pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, current_pacman_pos: usize) -> GameStatus {
+    pub fn update_state(&mut self, pacman: &mut Pacman, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>) -> GameStatus {
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
 
-        if self.pacman_pos != current_pacman_pos || self.computed_way.is_empty() {
-            self.computed_way = self.find_way_to_pacman(way, current_pacman_pos);
-            self.pacman_pos = current_pacman_pos;
+        if pacman.eat_bonus {
+            // calculate target pos
+            let target_pos = 0;
+            self.computed_way = self.find_target_pos(way, target_pos);
+        } else if self.pacman_pos != pacman.curr_cell || self.computed_way.is_empty() {
+            self.computed_way = self.find_target_pos(way, pacman.curr_cell);
+            self.pacman_pos = pacman.curr_cell;
         }
 
         let mut x = way.get(self.curr_cell).unwrap().x;
@@ -167,7 +172,8 @@ impl Ghost {
         match !self.computed_way.is_empty() {
             true => {
                 let next_cell = *self.computed_way.last().unwrap();
-                if way.get(next_cell).unwrap().ghost_presence {
+                if way.get(next_cell).unwrap().ghost_presence ||
+                    (way.get(next_cell).unwrap().pacman_presence && pacman.eat_bonus){
                     return GameStatus::Running;
                 }
 
