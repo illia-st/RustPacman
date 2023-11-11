@@ -1,5 +1,7 @@
 use std::fs::read_to_string;
 
+use crate::core::map::wave_function_collapse::matrix::WFCMatrix;
+
 use super::cell::MatrixCell;
 
 #[derive(Default, Debug, Clone)]
@@ -74,5 +76,9 @@ impl MapMatrix {
             width,
             matrix
         }
+    }
+
+    pub fn convert_from_wfc(matrix: WFCMatrix) -> MapMatrix {
+        todo!()
     }
 }
