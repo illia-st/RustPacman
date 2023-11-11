@@ -6,7 +6,7 @@ use crate::core::ghost::Ghost;
 use crate::core::map::matrix::cell::{CellModificator, CellPresence, MatrixCell};
 use super::map::graph::cell::GraphCell;
 
-const BONUS_DURABILITY: usize = 10000000;
+const BONUS_DURABILITY: usize = 30;
 
 #[derive(Debug)]
 pub struct Pacman {
