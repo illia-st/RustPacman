@@ -2,10 +2,11 @@ use std::collections::HashSet;
 use chrono::{DateTime, Duration, Utc};
 use rand::Rng;
 use crate::core::GameStatus;
+use crate::core::ghost::Ghost;
 use crate::core::map::matrix::cell::{CellModificator, CellPresence, MatrixCell};
 use super::map::graph::cell::GraphCell;
 
-const BONUS_DURABILITY: usize = 1000000;
+const BONUS_DURABILITY: usize = 10000000;
 
 #[derive(Debug)]
 pub struct Pacman {
@@ -75,17 +76,19 @@ impl Pacman {
         self.computed_way.reverse();
     }
 
-    fn go_by_computed_way(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, x: &mut usize, y: &mut usize) -> bool {
+    fn go_by_computed_way(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, ghosts: &mut [Ghost], x: &mut usize, y: &mut usize) -> bool {
         if self.computed_way.is_empty() {
             return false;
         }
+        // TODO: add conditions for bonuses
         // get the index of the new cell
         let next_cell = *self.computed_way.last().unwrap();
+
         // get the coordinates of the new cell
         let update_pacman_pos = {
             let new_cell = way.get_mut(next_cell).unwrap();
 
-            if new_cell.bonus_presence && !new_cell.ghost_presence {        // if there is a bonus and there is no ghost
+            if new_cell.bonus_presence && (!new_cell.ghost_presence || self.eat_bonus) {        // if there is a bonus and there is no ghost
                 // eat the bonus
                 new_cell.bonus_presence = false;
                 // remove cell modificator because the bonus has been eaten
@@ -93,7 +96,7 @@ impl Pacman {
                 self.eat_bonus = true;
                 self.bonus_effect_counter = 0;
                 true
-            } else if new_cell.point_presence && !new_cell.ghost_presence { // if there is a point and there is no ghost
+            } else if new_cell.point_presence && (!new_cell.ghost_presence || self.eat_bonus) { // if there is a point and there is no ghost
                 // eat the point
                 new_cell.point_presence = false;
                 // remove cell modificator because the point has been eaten
@@ -101,7 +104,9 @@ impl Pacman {
                 // update points counter
                 self.points += 1;
                 true
-            } else if new_cell.ghost_presence {                             // if ghost is there
+            } else if new_cell.ghost_presence && self.eat_bonus {                             // if ghost is there
+                true
+            } else if new_cell.ghost_presence {
                 false
             } else {                                                        // if nothing is there
                 true
@@ -112,19 +117,30 @@ impl Pacman {
             matrix.get_mut(*x).unwrap().get_mut(*y).unwrap().cell_presence = CellPresence::None;
             let new_cell = way.get_mut(next_cell).unwrap();
             new_cell.pacman_presence = true;
+
+            if matrix.get_mut(new_cell.x).unwrap().get_mut(new_cell.y).unwrap().cell_presence == CellPresence::Ghost {
+                let ghost = ghosts.iter_mut().find(|g| g.curr_cell == next_cell).unwrap();
+                ghost.eaten = true;
+                new_cell.ghost_presence = false;
+            }
+
             matrix.get_mut(new_cell.x).unwrap().get_mut(new_cell.y).unwrap().cell_presence = CellPresence::Pacman;
             *x = new_cell.x;
             *y = new_cell.y;
+            self.curr_cell = next_cell;
+            self.computed_way.pop();
         }
         update_pacman_pos
     }
-    fn go_to_cell_with_modificator(&mut self, cells_with_modificators: Vec<usize>, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, x: &mut usize, y: &mut usize) {
+    fn go_to_cell_with_modificator(&mut self, cells_with_modificators: Vec<usize>, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, ghosts: &mut [Ghost], x: &mut usize, y: &mut usize) {
         // randomly choose the next cell to go
         let cell: usize = rand::thread_rng().gen_range(0..cells_with_modificators.len());
         let next_cell = cells_with_modificators[cell];
         let new_cell = way.get_mut(next_cell).unwrap();
 
-        if self.eat_bonus && new_cell.ghost_presence {    // we can eat ghost here because pacman must be under the bonus to get such cell here
+        if self.eat_bonus && new_cell.ghost_presence {
+            let ghost = ghosts.iter_mut().find(|g| g.curr_cell == next_cell).unwrap();
+            ghost.eaten = true;// we can eat ghost here because pacman must be under the bonus to get such cell here
             new_cell.ghost_presence = false;
             matrix.get_mut(new_cell.x).unwrap().get_mut(new_cell.y).unwrap().cell_presence = CellPresence::None;
         }
@@ -151,7 +167,7 @@ impl Pacman {
         *y = way.get(self.curr_cell).unwrap().y;
     }
 
-    pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>) -> GameStatus {
+    pub fn update_state(&mut self, way: &mut [GraphCell], matrix: &mut Vec<Vec<MatrixCell>>, ghosts: &mut [Ghost]) -> GameStatus {
         // TODO: change speed by measuring timestamps
         let event_capture = Utc::now();
         if event_capture.signed_duration_since(self.last_event_capture) < self.update_delta {
@@ -163,6 +179,7 @@ impl Pacman {
             self.bonus_effect_counter += 1;
         }
         if self.bonus_effect_counter == BONUS_DURABILITY {
+            self.bonus_effect_counter = 0;
             self.eat_bonus = false;
         }
 
@@ -174,7 +191,7 @@ impl Pacman {
             return GameStatus::Finished;
         }
 
-        if self.go_by_computed_way(way, matrix, &mut x, &mut y) {
+        if self.go_by_computed_way(way, matrix, ghosts, &mut x, &mut y) {
             return GameStatus::Running;
         }
 
@@ -195,7 +212,7 @@ impl Pacman {
             indexes_of_possible_cells.push(*next_cell);
         }
         if !cells_with_modificators.is_empty() {
-            self.go_to_cell_with_modificator(cells_with_modificators, way, matrix, &mut x, &mut y);
+            self.go_to_cell_with_modificator(cells_with_modificators, way, matrix, ghosts, &mut x, &mut y);
             return GameStatus::Running;
         }
         if indexes_of_possible_cells.is_empty() {
@@ -203,7 +220,7 @@ impl Pacman {
             return GameStatus::Running;
         }
         self.start_finding_point(indexes_of_possible_cells, way);
-        match self.go_by_computed_way(way, matrix, &mut x, &mut y) {
+        match self.go_by_computed_way(way, matrix, ghosts, &mut x, &mut y) {
             true => GameStatus::Running,
             // false means that we have eaten all the points and game is finished
             false => GameStatus::Finished

@@ -31,7 +31,7 @@ impl Game {
         // 3) Use computed way to go to the pacman
         // 4) If pacman has changed his position, just add his new position to the precomputed way for the ghosts
         // 5) if a ghost will see a ghost in one of the cells, just recompute the way to the pacman
-        if self.pacman.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix) == GameStatus::Finished {
+        if self.pacman.update_state(&mut self.map.map_graph.graph, &mut self.map.map_state_matrix.matrix, &mut self.ghosts) == GameStatus::Finished {
             return GameStatus::Finished;
         }
         for ghost in self.ghosts.iter_mut() {

@@ -12,6 +12,7 @@ pub struct Ghost {
     pub curr_cell: usize,
     pub pacman_pos: usize,
     computed_way: Vec<usize>,
+    pub eaten: bool,
     pub update_delta: Duration,
     pub last_event_capture: DateTime<Utc>,
 }
@@ -36,6 +37,7 @@ impl Ghost {
             curr_cell: start_cell,
             pacman_pos,
             computed_way: Vec::default(),
+            eaten: false,
             update_delta,
             last_event_capture,
         }
@@ -156,6 +158,10 @@ impl Ghost {
             return GameStatus::Running;
         }
         self.last_event_capture = event_capture;
+
+        if self.eaten {
+            return GameStatus::Running;
+        }
 
         if pacman.eat_bonus {
             // calculate target pos
