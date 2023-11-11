@@ -33,6 +33,7 @@ impl MapGraph {
                     ghost_presence: cell.cell_presence == CellPresence::Ghost,
                     point_presence: cell.cell_modificator == CellModificator::Point,
                     pacman_presence: cell.cell_presence == CellPresence::Pacman,
+                    bonus_presence: cell.cell_modificator == CellModificator::Bonus,
                 });
                 positions.insert((i, j), index);
                 index += 1;
