@@ -15,6 +15,7 @@ pub enum CellModificator {
 pub enum CellType {
     Wall,
     Pathway,
+    None,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
@@ -73,6 +74,13 @@ impl MatrixCell {
             CellType::Pathway,
             CellModificator::None,
             CellPresence::Ghost
+        )
+    }
+    pub fn undef() -> Self {
+        MatrixCell::new(
+            CellType::None,
+            CellModificator::None,
+            CellPresence::None
         )
     }
 }

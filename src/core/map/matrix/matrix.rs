@@ -62,6 +62,10 @@ impl MapMatrix {
                     line.push(MatrixCell::bonus());
                     continue;
                 }
+                if char == 'N' {
+                    line.push(MatrixCell::undef());
+                    continue;
+                }
 
                 panic!()
             }

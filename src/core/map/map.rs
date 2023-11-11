@@ -1,3 +1,4 @@
+use rand::Rng;
 use tui::style::Color;
 use tui::widgets::canvas::Shape;
 
@@ -28,8 +29,8 @@ impl GameMap {
     }
 
     pub fn load_map_from_file(path: &str) -> GameMap {
-        const SCREEN_HEIGHT: usize = 35;
-        const SCREEN_WIDTH: usize = 80;
+        const SCREEN_HEIGHT: usize = 37;
+        const SCREEN_WIDTH: usize = 42;
 
         const TILE_HEIGHT: usize = 10;
         const TILE_WIDTH: usize = 10;
@@ -64,7 +65,10 @@ impl Shape for GameMap {
                     crate::core::map::matrix::cell::CellType::Pathway => 
                         match self.map_state_matrix.matrix[i][j].cell_presence {
                             crate::core::map::matrix::cell::CellPresence::Pacman => Color::Yellow,
-                            crate::core::map::matrix::cell::CellPresence::Ghost => Color::Magenta,
+                            crate::core::map::matrix::cell::CellPresence::Ghost => {
+                                Color::Magenta
+                                // Color::Rgb(rand::thread_rng().gen_range(0..=255), rand::thread_rng().gen_range(0..=255), rand::thread_rng().gen_range(0..=255))
+                            },
                             crate::core::map::matrix::cell::CellPresence::None => 
                                 match self.map_state_matrix.matrix[i][j].cell_modificator {
                                     crate::core::map::matrix::cell::CellModificator::Point => Color::White,
@@ -73,6 +77,7 @@ impl Shape for GameMap {
                                     crate::core::map::matrix::cell::CellModificator::None => Color::Black,
                                 },
                         },
+                    crate::core::map::matrix::cell::CellType::None => Color::Red,
                 };
 
                 for dx in 0..self.tile_width {

@@ -32,5 +32,6 @@ impl GameGenerator for DefaultGameGenerator {
         // )
         // Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/test_map.txt")
         Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/default_map.txt")
+        // Game::load_from_file("/home/tr3tiakoff/University/RustPacman/res/template.txt")
     }
 }
