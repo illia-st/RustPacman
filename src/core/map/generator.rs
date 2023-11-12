@@ -16,7 +16,7 @@ pub struct DefaultMapGenerator {}
 
 impl DefaultMapGenerator {
     fn generate_map_matrix_from_template(mut path_len: usize) -> Result<MapMatrix, ()> {
-        let mut matrix = MapMatrix::load_matrix_from_file("/home/tr3tiakoff/University/RustPacman/res/template.txt");
+        let mut matrix = MapMatrix::load_matrix_from_file("res/template.txt");
         let mut path: Vec<(usize, usize)> = Vec::new();
         let mut whole_path: Vec<(usize, usize)> = Vec::new();
 

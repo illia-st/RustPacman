@@ -3,6 +3,7 @@ use std::io;
 use pacman::app::App;
 use pacman::app::AppResult;
 
+use pacman::core::GameStatus;
 use pacman::event::Event;
 use pacman::event::EventHandler;
 
@@ -27,9 +28,13 @@ fn main() -> AppResult<()> {
     // Start the main loop.
     while app.running {
         // Update game state.
-        app.game.update_state();
+        let res = app.game.update_state();
         // Render the user interface.
         tui.draw(&mut app)?;
+
+        if res == GameStatus::Finished {
+            break;
+        }
         // Handle events.
         match tui.events.next()? {
             Event::Tick => app.tick(),
